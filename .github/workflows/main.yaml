@@ -1,4 +1,4 @@
-name: CI
+name: Lint and Build
 on:
   push:
     branches:
@@ -8,13 +8,23 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: pnpm/action-setup@v2
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
         with:
+          # Pin pnpm version
           version: 8
-      - uses: actions/setup-node@v3
+      - name: Setup node
+        uses: actions/setup-node@v3
         with:
-          node-version: 16.x
+          # Pin node version
+          node-version: 18.x
+          # Use pnpm as cache
           cache: "pnpm"
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm run lint && pnpm run build
+      - name: Install packages
+        #  Don't generate a lockfile and fail if an update is needed.
+        run: pnpm install --frozen-lockfile
+      - name: Lint and Build
+        # Check linting and bundle package
+        run: pnpm run lint && pnpm run build
