@@ -3,8 +3,12 @@ on:
   push:
     branches:
       - "main"
-
-concurrency: ${{ github.workflow }}-${{ github.ref }}
+# Make sure that only a single job or workflow using the same concurrency group will run at a time
+concurrency:
+  # Name of the group
+  group: ${{ github.workflow }}-${{ github.ref }}
+  # Cancel other jobs running on this group
+  cancel-in-progress: true
 
 jobs:
   build:
@@ -15,16 +19,22 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v2
         with:
+          # Pin pnpm version
           version: 8
       - name: Setup node
         uses: actions/setup-node@v3
         with:
-          node-version: 16.x
+          # Pin node version
+          node-version: 18.x
+          # Use pnpm as cache
           cache: "pnpm"
       - name: Install packages
+        #  Don't generate a lockfile and fail if an update is needed.
         run: pnpm install --frozen-lockfile
       - name: Create Release Pull Request or Publish
         id: changesets
+        # Handles opening a PR, increment the version number
+        # After merging the PR, will publish the npm package
         uses: changesets/action@v1
         with:
           publish: pnpm publish
